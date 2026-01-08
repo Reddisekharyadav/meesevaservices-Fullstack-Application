@@ -12,11 +12,10 @@ export async function GET(req: NextRequest) {
     const branchId = searchParams.get('branchId');
     
     let sql = `
-      SELECT d.id, d.customerId, d.fileName, d.blobUrl, d.uploadedBy, d.fileSize, d.createdAt,
-             c.name as customerName, e.name as uploadedByName
+      SELECT d.id, d.customerId, d.originalName, d.blobName, d.fileSize, d.createdAt,
+             c.name as customerName
       FROM Documents d
       LEFT JOIN Customers c ON d.customerId = c.id
-      LEFT JOIN Employees e ON d.uploadedBy = e.id
       WHERE 1=1
     `;
     
@@ -69,14 +68,13 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     
     // Save document record to database
     const result = await execute(
-      `INSERT INTO Documents (customerId, fileName, blobUrl, uploadedBy, fileSize)
+      `INSERT INTO Documents (customerId, originalName, blobName, fileSize)
        OUTPUT INSERTED.id
-       VALUES (@customerId, @fileName, @blobUrl, @uploadedBy, @fileSize)`,
+       VALUES (@customerId, @originalName, @blobName, @fileSize)`,
       {
         customerId: parseInt(customerId),
-        fileName: uploadResult.fileName,
-        blobUrl: uploadResult.blobUrl,
-        uploadedBy: req.user.id,
+        originalName: file.name,
+        blobName: uploadResult.fileName,
         fileSize: uploadResult.fileSize,
       }
     );

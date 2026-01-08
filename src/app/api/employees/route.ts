@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const branchId = searchParams.get('branchId');
     
     let sql = `
-      SELECT e.id, e.name, e.phone, e.role, e.branchId, e.isActive, e.createdAt, 
+      SELECT e.id, e.name, e.email, e.phone, e.role, e.branchId, e.isActive, e.createdAt, 
              b.name as branchName
       FROM Employees e
       LEFT JOIN Branches b ON e.branchId = b.id
@@ -42,24 +42,27 @@ export async function GET(req: NextRequest) {
 export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
   try {
     const body = await req.json();
-    const { name, phone, password, role, branchId } = body;
+    const { name, email, password, role, branchId } = body;
     
-    if (!name || !phone || !password || !role) {
+    if (!name || !email || !password || !role) {
       return NextResponse.json(
-        { success: false, error: 'Name, phone, password, and role are required' },
+        { success: false, error: 'Name, email, password, and role are required' },
         { status: 400 }
       );
     }
     
-    // Check if phone already exists
-    const existing = await queryOne<Employee>(
-      'SELECT id FROM Employees WHERE phone = @phone',
-      { phone }
+    // Use the logged-in admin's phone number
+    const adminPhone = req.user?.phone || null;
+    
+    // Check if email already exists
+    const existingEmail = await queryOne<Employee>(
+      'SELECT id FROM Employees WHERE email = @email',
+      { email }
     );
     
-    if (existing) {
+    if (existingEmail) {
       return NextResponse.json(
-        { success: false, error: 'Phone number already registered' },
+        { success: false, error: 'Email already registered' },
         { status: 400 }
       );
     }
@@ -67,13 +70,14 @@ export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
     const hashedPassword = await hashPassword(password);
     
     const result = await execute(
-      `INSERT INTO Employees (name, phone, password, role, branchId)
+      `INSERT INTO Employees (name, phone, email, passwordHash, role, branchId)
        OUTPUT INSERTED.id
-       VALUES (@name, @phone, @password, @role, @branchId)`,
+       VALUES (@name, @phone, @email, @passwordHash, @role, @branchId)`,
       {
         name,
-        phone,
-        password: hashedPassword,
+        phone: adminPhone,
+        email,
+        passwordHash: hashedPassword,
         role,
         branchId: branchId || null,
       }
@@ -83,7 +87,7 @@ export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
     
     return NextResponse.json({
       success: true,
-      data: { id: insertedId, name, phone, role, branchId },
+      data: { id: insertedId, name, phone: adminPhone, email, role, branchId },
     });
   } catch (error) {
     console.error('Error creating employee:', error);

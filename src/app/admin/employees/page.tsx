@@ -12,9 +12,9 @@ export default function EmployeesPage() {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
+    email: "",
     password: "",
-    role: "employee" as "super_admin" | "branch_admin" | "employee",
+    role: "employee" as "superAdmin" | "branchAdmin" | "employee",
     branchId: "",
   });
 
@@ -46,7 +46,7 @@ export default function EmployeesPage() {
       setEditingEmployee(employee);
       setFormData({
         name: employee.name,
-        phone: employee.phone,
+        email: employee.email || "",
         password: "",
         role: employee.role,
         branchId: employee.branchId?.toString() || "",
@@ -55,7 +55,7 @@ export default function EmployeesPage() {
       setEditingEmployee(null);
       setFormData({
         name: "",
-        phone: "",
+        email: "",
         password: "",
         role: "employee",
         branchId: "",
@@ -75,7 +75,7 @@ export default function EmployeesPage() {
 
       const payload: Record<string, unknown> = {
         name: formData.name,
-        phone: formData.phone,
+        email: formData.email,
         role: formData.role,
         branchId: formData.branchId ? parseInt(formData.branchId) : null,
       };
@@ -104,7 +104,7 @@ export default function EmployeesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to deactivate this employee?")) return;
+    if (!confirm("Are you sure you want to permanently delete this employee? This action cannot be undone.")) return;
 
     try {
       const res = await fetch(`/api/employees/${id}`, { method: "DELETE" });
@@ -237,16 +237,16 @@ export default function EmployeesPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
+              Email
             </label>
             <input
-              type="tel"
-              value={formData.phone}
+              type="email"
+              value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
+                setFormData({ ...formData, email: e.target.value })
               }
               className="input-field"
-              placeholder="Enter phone number"
+              placeholder="Enter email address"
               required
             />
           </div>
@@ -283,8 +283,8 @@ export default function EmployeesPage() {
               className="input-field"
             >
               <option value="employee">Employee</option>
-              <option value="branch_admin">Branch Admin</option>
-              <option value="super_admin">Super Admin</option>
+              <option value="branchAdmin">Branch Admin</option>
+              <option value="superAdmin">Super Admin</option>
             </select>
           </div>
 

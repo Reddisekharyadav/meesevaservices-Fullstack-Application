@@ -85,9 +85,9 @@ export const DELETE = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
     const url = new URL(req.url);
     const id = url.pathname.split('/').pop();
     
-    // Soft delete by setting isActive to false
+    // Permanently delete employee record
     await execute(
-      'UPDATE Employees SET isActive = 0, updatedAt = GETUTCDATE() WHERE id = @id',
+      'DELETE FROM Employees WHERE id = @id',
       { id: parseInt(id!) }
     );
     

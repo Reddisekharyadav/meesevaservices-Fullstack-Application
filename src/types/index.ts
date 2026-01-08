@@ -20,6 +20,7 @@ export interface Branch {
 export interface Employee {
   id: number;
   name: string;
+  email: string;
   phone: string;
   password?: string;
   role: Role;
@@ -34,7 +35,7 @@ export interface Customer {
   id: number;
   name: string;
   phone: string;
-  username: string;
+  email: string;
   password?: string;
   branchId: number;
   branchName?: string;
@@ -47,26 +48,21 @@ export interface WorkEntry {
   id: number;
   customerId: number;
   customerName?: string;
-  employeeId: number;
-  employeeName?: string;
   branchId: number;
   branchName?: string;
   description: string;
   amount: number;
-  paymentMode: PaymentMode;
   status: WorkStatus;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export interface Document {
   id: number;
   customerId: number;
   customerName?: string;
-  fileName: string;
-  blobUrl: string;
-  uploadedBy: number;
-  uploadedByName?: string;
+  originalName: string;
+  blobName: string;
   fileSize: number | null;
   createdAt: Date;
 }

@@ -14,12 +14,11 @@ export async function GET(req: NextRequest) {
     const endDate = searchParams.get('endDate');
     
     let sql = `
-      SELECT w.id, w.customerId, w.employeeId, w.branchId, w.description,
-             w.amount, w.paymentMode, w.status, w.createdAt,
-             c.name as customerName, e.name as employeeName, b.name as branchName
+      SELECT w.id, w.customerId, w.branchId, w.description,
+             w.amount, w.status, w.createdAt,
+             c.name as customerName, b.name as branchName
       FROM WorkEntries w
       LEFT JOIN Customers c ON w.customerId = c.id
-      LEFT JOIN Employees e ON w.employeeId = e.id
       LEFT JOIN Branches b ON w.branchId = b.id
       WHERE 1=1
     `;
@@ -65,7 +64,7 @@ export async function GET(req: NextRequest) {
 export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
   try {
     const body = await req.json();
-    const { customerId, description, amount, paymentMode, branchId } = body;
+    const { customerId, description, amount, branchId } = body;
     
     if (!customerId || !description) {
       return NextResponse.json(
@@ -77,7 +76,7 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     const effectiveBranchId = branchId || req.user.branchId;
     
     // Check branch access for non-super admins
-    if (req.user.role !== 'super_admin' && req.user.branchId !== effectiveBranchId) {
+    if (req.user.role !== 'superAdmin' && req.user.branchId !== effectiveBranchId) {
       return NextResponse.json(
         { success: false, error: 'Cannot create work entry for another branch' },
         { status: 403 }
@@ -85,16 +84,15 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     }
     
     const result = await execute(
-      `INSERT INTO WorkEntries (customerId, employeeId, branchId, description, amount, paymentMode, status)
+      `INSERT INTO WorkEntries (customerId, branchId, description, amount, status)
        OUTPUT INSERTED.id
-       VALUES (@customerId, @employeeId, @branchId, @description, @amount, @paymentMode, 'pending')`,
+       VALUES (@customerId, @branchId, @description, @amount, @status)`,
       {
         customerId,
-        employeeId: req.user.id,
         branchId: effectiveBranchId,
         description,
         amount: amount || 0,
-        paymentMode: paymentMode || 'pending',
+        status: 'pending',
       }
     );
     

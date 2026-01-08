@@ -57,6 +57,17 @@ async function checkSchema() {
     }
 
     // Check for super admins
+    console.log('=== CHECKING ROLE VALUES AND CONSTRAINTS ===');
+    const rolesResult = await sql.query`SELECT DISTINCT role FROM Employees`;
+    console.log('Existing roles in database:', rolesResult.recordset);
+    
+    const constraintsResult = await sql.query`
+      SELECT CONSTRAINT_NAME, CHECK_CLAUSE 
+      FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS 
+      WHERE TABLE_NAME = 'Employees'
+    `;
+    console.log('CHECK constraints on Employees table:', constraintsResult.recordset);
+
     console.log('=== CHECKING FOR SUPER ADMINS ===');
     const superAdminsResult = await sql.query`
       SELECT id, name, email, phone, role, branchId, isActive, createdAt

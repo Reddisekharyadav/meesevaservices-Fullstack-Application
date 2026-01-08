@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search');
     
     let sql = `
-      SELECT c.id, c.name, c.phone, c.username, c.branchId, c.isActive, c.createdAt,
+      SELECT c.id, c.name, c.phone, c.email, c.branchId, c.isActive, c.createdAt,
              b.name as branchName
       FROM Customers c
       LEFT JOIN Branches b ON c.branchId = b.id
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
     
     if (search) {
-      sql += ' AND (c.name LIKE @search OR c.phone LIKE @search OR c.username LIKE @search)';
+      sql += ' AND (c.name LIKE @search OR c.phone LIKE @search OR c.email LIKE @search)';
       params.search = `%${search}%`;
     }
     
@@ -49,9 +49,9 @@ export async function GET(req: NextRequest) {
 export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
   try {
     const body = await req.json();
-    const { name, phone, username, password, branchId } = body;
+    const { name, phone, email, password, branchId } = body;
     
-    if (!name || !phone || !username || !password || !branchId) {
+    if (!name || !phone || !email || !password || !branchId) {
       return NextResponse.json(
         { success: false, error: 'All fields are required' },
         { status: 400 }
@@ -59,22 +59,22 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     }
     
     // Check if branch admin can only create for their branch
-    if (req.user.role === 'branch_admin' && req.user.branchId !== branchId) {
+    if (req.user.role === 'branchAdmin' && req.user.branchId !== branchId) {
       return NextResponse.json(
         { success: false, error: 'Cannot create customer for another branch' },
         { status: 403 }
       );
     }
     
-    // Check if username already exists
+    // Check if email already exists
     const existing = await queryOne<Customer>(
-      'SELECT id FROM Customers WHERE username = @username',
-      { username }
+      'SELECT id FROM Customers WHERE email = @email',
+      { email }
     );
     
     if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Username already taken' },
+        { success: false, error: 'Email already registered' },
         { status: 400 }
       );
     }
@@ -82,14 +82,14 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     const hashedPassword = await hashPassword(password);
     
     const result = await execute(
-      `INSERT INTO Customers (name, phone, username, password, branchId)
+      `INSERT INTO Customers (name, phone, email, passwordHash, branchId)
        OUTPUT INSERTED.id
-       VALUES (@name, @phone, @username, @password, @branchId)`,
+       VALUES (@name, @phone, @email, @passwordHash, @branchId)`,
       {
         name,
         phone,
-        username,
-        password: hashedPassword,
+        email,
+        passwordHash: hashedPassword,
         branchId,
       }
     );
@@ -98,7 +98,7 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     
     return NextResponse.json({
       success: true,
-      data: { id: insertedId, name, phone, username, branchId },
+      data: { id: insertedId, name, phone, email, branchId },
     });
   } catch (error) {
     console.error('Error creating customer:', error);

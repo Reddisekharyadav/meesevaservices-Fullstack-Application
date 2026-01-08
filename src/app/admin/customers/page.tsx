@@ -14,8 +14,8 @@ export default function CustomersPage() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     password: "",
-    address: "",
     branchId: "",
   });
 
@@ -48,8 +48,8 @@ export default function CustomersPage() {
       setFormData({
         name: customer.name,
         phone: customer.phone,
+        email: customer.email || "",
         password: "",
-        address: (customer as any).address || "",
         branchId: customer.branchId.toString(),
       });
     } else {
@@ -57,8 +57,8 @@ export default function CustomersPage() {
       setFormData({
         name: "",
         phone: "",
+        email: "",
         password: "",
-        address: "",
         branchId: branches[0]?.id.toString() || "",
       });
     }
@@ -77,7 +77,7 @@ export default function CustomersPage() {
       const payload: Record<string, unknown> = {
         name: formData.name,
         phone: formData.phone,
-        address: formData.address,
+        email: formData.email,
         branchId: parseInt(formData.branchId),
       };
 
@@ -146,11 +146,11 @@ export default function CustomersPage() {
         <input
           id="search-input"
           type="text"
-          placeholder="Search by name, phone, or username..."
+          placeholder="Search by name, phone, or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="input-field"
-          aria-label="Search customers by name, phone, or username"
+          aria-label="Search customers by name, phone, or email"
         />
       </div>
 
@@ -165,7 +165,7 @@ export default function CustomersPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="table-header">Name</th>
-                  <th className="table-header">Username</th>
+                  <th className="table-header">Email</th>
                   <th className="table-header">Phone</th>
                   <th className="table-header">Branch</th>
                   <th className="table-header">Status</th>
@@ -176,7 +176,7 @@ export default function CustomersPage() {
                 {customers.map((customer) => (
                   <tr key={customer.id}>
                     <td className="table-cell font-medium">{customer.name}</td>
-                    <td className="table-cell">{customer.username}</td>
+                    <td className="table-cell">{customer.email}</td>
                     <td className="table-cell">{customer.phone}</td>
                     <td className="table-cell">{customer.branchName || "-"}</td>
                     <td className="table-cell">
@@ -271,16 +271,17 @@ export default function CustomersPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address
+              Email
             </label>
-            <textarea
-              value={formData.address}
+            <input
+              type="email"
+              value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
+                setFormData({ ...formData, email: e.target.value })
               }
               className="input-field"
-              placeholder="Enter address"
-              rows={2}
+              placeholder="Enter email address"
+              required
             />
           </div>
 
