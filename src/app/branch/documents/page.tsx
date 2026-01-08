@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import FileUpload from "@/components/FileUpload";
 import { Document, Customer } from "@/types";
 
+// Extend Document type to include description property
+interface DocumentWithDescription extends Document {
+  description?: string;
+}
+
 export default function BranchDocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentWithDescription[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
@@ -130,6 +135,7 @@ export default function BranchDocumentsPage() {
               value={uploadCustomerId}
               onChange={(e) => setUploadCustomerId(e.target.value)}
               className="input-field"
+              aria-label="Select customer for document upload"
             >
               <option value="">Select Customer</option>
               {customers.map((customer) => (
@@ -152,7 +158,7 @@ export default function BranchDocumentsPage() {
             />
           </div>
         </div>
-        <FileUpload onUpload={handleUpload} accept=".pdf" maxSize={10} />
+        <FileUpload onUpload={handleUpload} accept=".pdf" />
       </div>
 
       {/* Filter */}
@@ -161,6 +167,7 @@ export default function BranchDocumentsPage() {
           value={selectedCustomerId}
           onChange={(e) => setSelectedCustomerId(e.target.value)}
           className="input-field w-full md:w-64"
+          aria-label="Filter documents by customer"
         >
           <option value="">All Customers</option>
           {customers.map((customer) => (
@@ -193,7 +200,7 @@ export default function BranchDocumentsPage() {
                     <td className="table-cell font-medium">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">📄</span>
-                        {doc.originalName}
+                        {doc.fileName}
                       </div>
                     </td>
                     <td className="table-cell">{doc.customerName}</td>
@@ -203,7 +210,7 @@ export default function BranchDocumentsPage() {
                     </td>
                     <td className="table-cell">
                       <button
-                        onClick={() => handleDownload(doc.id, doc.originalName)}
+                        onClick={() => handleDownload(doc.id, doc.fileName)}
                         className="text-primary-600 hover:text-primary-700 mr-3"
                       >
                         Download

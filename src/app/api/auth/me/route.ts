@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     
     if (payload.userType === 'employee') {
       const employee = await queryOne<Employee>(
-        `SELECT e.id, e.name, e.phone, e.role, e.branchId, b.name as branchName
+        `SELECT e.id, e.name, e.email, e.phone, e.role, e.branchId, b.name as branchName
          FROM Employees e
          LEFT JOIN Branches b ON e.branchId = b.id
          WHERE e.id = @id AND e.isActive = 1`,

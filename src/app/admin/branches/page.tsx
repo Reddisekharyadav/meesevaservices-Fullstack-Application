@@ -11,7 +11,7 @@ export default function BranchesPage() {
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    city: "",
+    code: "",
     address: "",
   });
 
@@ -38,12 +38,12 @@ export default function BranchesPage() {
       setEditingBranch(branch);
       setFormData({
         name: branch.name,
-        city: branch.city,
+        code: branch.code,
         address: branch.address || "",
       });
     } else {
       setEditingBranch(null);
-      setFormData({ name: "", city: "", address: "" });
+      setFormData({ name: "", code: "", address: "" });
     }
     setIsModalOpen(true);
   };
@@ -119,7 +119,8 @@ export default function BranchesPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="table-header">Name</th>
-                  <th className="table-header">City</th>
+                  <th className="table-header">Code</th>
+                  <th className="table-header">Phone</th>
                   <th className="table-header">Address</th>
                   <th className="table-header">Actions</th>
                 </tr>
@@ -128,7 +129,8 @@ export default function BranchesPage() {
                 {branches.map((branch) => (
                   <tr key={branch.id}>
                     <td className="table-cell font-medium">{branch.name}</td>
-                    <td className="table-cell">{branch.city}</td>
+                    <td className="table-cell">{branch.code}</td>
+                    <td className="table-cell">{branch.phone || "-"}</td>
                     <td className="table-cell">{branch.address || "-"}</td>
                     <td className="table-cell">
                       <div className="flex gap-2">
@@ -179,14 +181,14 @@ export default function BranchesPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              City
+              Branch Code
             </label>
             <input
               type="text"
-              placeholder="Enter city"
-              value={formData.city}
+              placeholder="Enter branch code"
+              value={formData.code}
               onChange={(e) =>
-                setFormData({ ...formData, city: e.target.value })
+                setFormData({ ...formData, code: e.target.value })
               }
               className="input-field"
               required

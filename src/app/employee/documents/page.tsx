@@ -114,7 +114,7 @@ export default function EmployeeDocumentsPage() {
             />
           </div>
         </div>
-        <FileUpload onUpload={handleUpload} accept=".pdf" maxSize={10} />
+        <FileUpload onUpload={handleUpload} accept=".pdf" label="Upload PDF (max 10MB)" />
       </div>
 
       {/* Recent Uploads */}

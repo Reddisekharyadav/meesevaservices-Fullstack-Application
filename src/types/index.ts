@@ -1,6 +1,6 @@
 // Type definitions for Seva Center
 
-export type Role = 'super_admin' | 'branch_admin' | 'employee';
+export type Role = 'superAdmin' | 'branchAdmin' | 'employee';
 export type CustomerRole = 'customer';
 export type PaymentMode = 'cash' | 'upi' | 'test' | 'pending';
 export type PaymentStatus = 'pending' | 'completed' | 'failed';
@@ -9,8 +9,10 @@ export type WorkStatus = 'pending' | 'completed';
 export interface Branch {
   id: number;
   name: string;
-  city: string;
+  code: string;
   address: string | null;
+  phone: string | null;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

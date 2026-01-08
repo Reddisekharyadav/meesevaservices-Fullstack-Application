@@ -54,19 +54,19 @@ export function withAuth(
 export function withAdminAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
-  return withAuth(handler, ['super_admin', 'branch_admin']);
+  return withAuth(handler, ['superAdmin', 'branchAdmin']);
 }
 
 export function withSuperAdminAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
-  return withAuth(handler, ['super_admin']);
+  return withAuth(handler, ['superAdmin']);
 }
 
 export function withEmployeeAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
-  return withAuth(handler, ['super_admin', 'branch_admin', 'employee']);
+  return withAuth(handler, ['superAdmin', 'branchAdmin', 'employee']);
 }
 
 export function withCustomerAuth(

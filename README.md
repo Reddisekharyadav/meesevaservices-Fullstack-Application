@@ -76,6 +76,9 @@ AZURE_STORAGE_CONTAINER_NAME=documents
 # JWT Secret (generate a random 32+ character string)
 JWT_SECRET=your-super-secret-jwt-key-min-32-chars
 
+# Host-only key to unlock super admin creation
+SUPER_ADMIN_SETUP_KEY=your-host-passcode
+
 # Razorpay (Test Mode - Optional)
 RAZORPAY_KEY_ID=rzp_test_xxxxx
 RAZORPAY_KEY_SECRET=your-razorpay-secret
@@ -111,6 +114,12 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+### Super Admin setup (host-only)
+
+- Set `SUPER_ADMIN_SETUP_KEY` in your environment.
+- Visit `/super-admin-setup` and enter the host credential.
+- Once authorized, you can see the current super admins (count + details) and create new super admins securely.
 
 ## 📁 Project Structure
 

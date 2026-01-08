@@ -24,27 +24,30 @@ export async function GET(req: NextRequest) {
 export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
   try {
     const body = await req.json();
-    const { name, city, address } = body;
+    const { name, code, address } = body;
     
-    if (!name || !city) {
+    if (!name || !code) {
       return NextResponse.json(
-        { success: false, error: 'Name and city are required' },
+        { success: false, error: 'Name and code are required' },
         { status: 400 }
       );
     }
     
+    // Use the logged-in admin's phone number
+    const adminPhone = req.user?.phone || null;
+    
     const result = await execute(
-      `INSERT INTO Branches (name, city, address) 
+      `INSERT INTO Branches (name, code, address, phone) 
        OUTPUT INSERTED.id
-       VALUES (@name, @city, @address)`,
-      { name, city, address: address || null }
+       VALUES (@name, @code, @address, @phone)`,
+      { name, code, address: address || null, phone: adminPhone }
     );
     
     const insertedId = (result.recordset as { id: number }[])[0]?.id;
     
     return NextResponse.json({
       success: true,
-      data: { id: insertedId, name, city, address },
+      data: { id: insertedId, name, code, address, phone: adminPhone },
     });
   } catch (error) {
     console.error('Error creating branch:', error);

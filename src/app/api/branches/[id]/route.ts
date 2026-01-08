@@ -38,13 +38,13 @@ export const PUT = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
     const url = new URL(req.url);
     const id = url.pathname.split('/').pop();
     const body = await req.json();
-    const { name, city, address } = body;
+    const { name, code, address, phone } = body;
     
     await execute(
       `UPDATE Branches 
-       SET name = @name, city = @city, address = @address, updatedAt = GETUTCDATE()
+       SET name = @name, code = @code, address = @address, phone = @phone, updatedAt = GETUTCDATE()
        WHERE id = @id`,
-      { id: parseInt(id!), name, city, address }
+      { id: parseInt(id!), name, code, address, phone }
     );
     
     return NextResponse.json({ success: true });

@@ -72,13 +72,13 @@ export function canAccessBranch(user: JWTPayload, branchId: number): boolean {
 }
 
 export function isAdmin(role: Role | CustomerRole): boolean {
-  return role === 'super_admin' || role === 'branch_admin';
+  return role === 'superAdmin' || role === 'branchAdmin';
 }
 
 export function isSuperAdmin(role: Role | CustomerRole): boolean {
-  return role === 'super_admin';
+  return role === 'superAdmin';
 }
 
 export function isEmployee(role: Role | CustomerRole): boolean {
-  return role === 'super_admin' || role === 'branch_admin' || role === 'employee';
+  return role === 'superAdmin' || role === 'branchAdmin' || role === 'employee';
 }

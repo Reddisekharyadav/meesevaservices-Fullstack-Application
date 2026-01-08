@@ -207,6 +207,8 @@ export default function BranchCustomersPage() {
               }
               className="input-field"
               placeholder="Enter password"
+              title="Enter customer password"
+              aria-label="Customer password"
               required={!editingCustomer}
             />
           </div>
@@ -223,6 +225,8 @@ export default function BranchCustomersPage() {
               className="input-field"
               rows={2}
               placeholder="Enter address"
+              title="Enter customer address"
+              aria-label="Customer address"
             />
           </div>
 
