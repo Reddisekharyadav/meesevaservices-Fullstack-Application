@@ -161,10 +161,11 @@ export default function WorkEntriesPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="startDateRange" className="block text-sm font-medium text-gray-700 mb-1">
               Start Date
             </label>
             <input
+              id="startDateRange"
               type="date"
               value={dateRange.startDate}
               onChange={(e) => {
@@ -175,10 +176,26 @@ export default function WorkEntriesPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              id="startDate"
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => {
+                setDateRange({ ...dateRange, startDate: e.target.value });
+                setSelectedDate(""); // Clear single date when range is used
+              }}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
               End Date
             </label>
             <input
+              id="endDate"
               type="date"
               value={dateRange.endDate}
               onChange={(e) => {
