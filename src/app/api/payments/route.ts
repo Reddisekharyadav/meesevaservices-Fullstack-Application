@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, execute } from '@/lib/db';
+import { query, queryOne, execute } from '@/lib/db';
 import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { Payment } from '@/types';
 
@@ -80,6 +80,33 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     );
     
     const insertedId = (result.recordset as { id: number }[])[0]?.id;
+    
+    // If no work entry is linked, auto-create one
+    if (!workEntryId) {
+      try {
+        // Get customer details for work entry
+        const customer = await queryOne<{ name: string; branchId: number }>(
+          'SELECT name, branchId FROM Customers WHERE id = @id',
+          { id: customerId }
+        );
+        
+        if (customer) {
+          await execute(
+            `INSERT INTO WorkEntries (customerId, branchId, employeeId, description, amount, status)
+             VALUES (@customerId, @branchId, @employeeId, @description, @amount, 'completed')`,
+            {
+              customerId,
+              branchId: customer.branchId,
+              employeeId: req.user.id,
+              description: `Payment received - ${customer.name}`,
+              amount: amount,
+            }
+          );
+        }
+      } catch (workEntryError) {
+        console.warn('Failed to create auto work entry for payment:', workEntryError);
+      }
+    }
     
     // Update work entry status if linked
     if (workEntryId) {

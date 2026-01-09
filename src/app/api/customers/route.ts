@@ -96,6 +96,23 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     
     const insertedId = (result.recordset as { id: number }[])[0]?.id;
     
+    // Auto-create work entry for new customer registration
+    try {
+      await execute(
+        `INSERT INTO WorkEntries (customerId, branchId, employeeId, description, amount, status)
+         VALUES (@customerId, @branchId, @employeeId, @description, @amount, 'pending')`,
+        {
+          customerId: insertedId,
+          branchId: branchId,
+          employeeId: req.user.id,
+          description: `Customer registration - ${name}`,
+          amount: 0,
+        }
+      );
+    } catch (workEntryError) {
+      console.warn('Failed to create auto work entry for customer:', workEntryError);
+    }
+    
     return NextResponse.json({
       success: true,
       data: { id: insertedId, name, phone, email, branchId },

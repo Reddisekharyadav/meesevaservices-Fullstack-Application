@@ -10,9 +10,11 @@ export default function WorkEntriesPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState("");
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
   const [formData, setFormData] = useState({
     customerId: "",
     description: "",
@@ -22,8 +24,23 @@ export default function WorkEntriesPage() {
 
   const fetchData = async () => {
     try {
+      // Build query parameters
+      let workEntriesUrl = '/api/work-entries';
+      const params = new URLSearchParams();
+      
+      if (selectedDate) {
+        params.append('date', selectedDate);
+      } else if (dateRange.startDate && dateRange.endDate) {
+        params.append('startDate', dateRange.startDate);
+        params.append('endDate', dateRange.endDate);
+      }
+      
+      if (params.toString()) {
+        workEntriesUrl += '?' + params.toString();
+      }
+      
       const [entriesRes, custRes, branchRes] = await Promise.all([
-        fetch(`/api/work-entries?date=${selectedDate}`),
+        fetch(workEntriesUrl),
         fetch("/api/customers"),
         fetch("/api/branches"),
       ]);
@@ -44,7 +61,7 @@ export default function WorkEntriesPage() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedDate]);
+  }, [selectedDate, dateRange]);
 
   const handleOpenModal = () => {
     setFormData({
@@ -126,32 +143,101 @@ export default function WorkEntriesPage() {
       </div>
 
       {/* Date Filter */}
-      <div className="card mb-6 flex items-center gap-4">
-        <label className="font-medium text-gray-700">Date:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="input-field max-w-xs"
-          aria-label="Select date"
-        />
-        <div className="ml-auto text-lg font-semibold text-gray-900">
-          Total: ₹{totalAmount.toLocaleString()}
+      <div className="card mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Specific Date
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setDateRange({ startDate: "", endDate: "" }); // Clear range when single date is selected
+              }}
+              className="input-field"
+              placeholder="Select single date"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => {
+                setDateRange({ ...dateRange, startDate: e.target.value });
+                setSelectedDate(""); // Clear single date when range is used
+              }}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              End Date
+            </label>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => {
+                setDateRange({ ...dateRange, endDate: e.target.value });
+                setSelectedDate(""); // Clear single date when range is used
+              }}
+              className="input-field"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setSelectedDate("");
+                setDateRange({ startDate: "", endDate: "" });
+              }}
+              className="btn-secondary"
+            >
+              Show All
+            </button>
+            <button
+              onClick={() => setSelectedDate(new Date().toISOString().split("T")[0])}
+              className="btn-secondary"
+            >
+              Today
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t flex justify-between items-center">
+          <span className="text-sm text-gray-600">
+            Showing {entries.length} work entries
+          </span>
+          <div className="text-lg font-semibold text-gray-900">
+            Total: ₹{totalAmount.toLocaleString()}
+          </div>
         </div>
       </div>
 
       <div className="card">
         {entries.length === 0 ? (
-          <p className="text-gray-500">No work entries for this date.</p>
+          <div className="text-center py-12">
+            <span className="text-4xl mb-4 block">📋</span>
+            <p className="text-gray-500 mb-2">
+              No work entries found for the selected period.
+            </p>
+            <p className="text-sm text-gray-400">
+              Try adjusting your date filter or click "Show All" to see all entries.
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="table-header">Customer</th>
+                  <th className="table-header">Employee</th>
                   <th className="table-header">Description</th>
                   <th className="table-header">Amount</th>
                   <th className="table-header">Status</th>
+                  <th className="table-header">Date</th>
                   <th className="table-header">Actions</th>
                 </tr>
               </thead>
@@ -160,6 +246,11 @@ export default function WorkEntriesPage() {
                   <tr key={entry.id}>
                     <td className="table-cell font-medium">
                       {entry.customerName}
+                    </td>
+                    <td className="table-cell text-sm">
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
+                        {(entry as any).employeeName || 'Unknown'}
+                      </span>
                     </td>
                     <td className="table-cell">{entry.description}</td>
                     <td className="table-cell">₹{entry.amount.toLocaleString()}</td>
@@ -173,6 +264,9 @@ export default function WorkEntriesPage() {
                       >
                         {entry.status}
                       </span>
+                    </td>
+                    <td className="table-cell text-sm text-gray-500">
+                      {new Date(entry.createdAt).toLocaleDateString()}
                     </td>
                     <td className="table-cell">
                       {entry.status !== "completed" && (

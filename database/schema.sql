@@ -50,13 +50,15 @@ CREATE TABLE WorkEntries (
     id INT IDENTITY(1,1) PRIMARY KEY,
     customerId INT NOT NULL,
     branchId INT NOT NULL,
+    employeeId INT NULL,
     description NVARCHAR(500) NOT NULL,
     amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     status NVARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
     createdAt DATETIME2 DEFAULT GETUTCDATE(),
     updatedAt DATETIME2 DEFAULT GETUTCDATE(),
     FOREIGN KEY (customerId) REFERENCES Customers(id),
-    FOREIGN KEY (branchId) REFERENCES Branches(id)
+    FOREIGN KEY (branchId) REFERENCES Branches(id),
+    FOREIGN KEY (employeeId) REFERENCES Employees(id)
 );
 
 -- Create Documents Table

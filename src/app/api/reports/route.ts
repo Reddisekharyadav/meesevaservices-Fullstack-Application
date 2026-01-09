@@ -72,6 +72,42 @@ export async function GET(req: NextRequest) {
       const reports = await query<BranchReport>(sql, params);
       
       return NextResponse.json({ success: true, data: reports });
+    } else if (type === 'employee-activity') {
+      // Employee activity report - tracks work entries by employees
+      let sql = `
+        SELECT 
+          CAST(w.createdAt AS DATE) as date,
+          e.name as employeeName,
+          e.id as employeeId,
+          b.name as branchName,
+          COUNT(*) as workCount,
+          SUM(CASE WHEN w.status = 'completed' THEN 1 ELSE 0 END) as completedCount,
+          SUM(CASE WHEN w.status = 'pending' THEN 1 ELSE 0 END) as pendingCount,
+          SUM(w.amount) as totalWorkValue
+        FROM WorkEntries w
+        LEFT JOIN Employees e ON w.employeeId = e.id
+        LEFT JOIN Branches b ON w.branchId = b.id
+        WHERE 1=1
+      `;
+      
+      const params: Record<string, unknown> = {};
+      
+      if (branchId) {
+        sql += ' AND w.branchId = @branchId';
+        params.branchId = parseInt(branchId);
+      }
+      
+      if (startDate && endDate) {
+        sql += ' AND w.createdAt >= @startDate AND w.createdAt <= @endDate';
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+      
+      sql += ' GROUP BY CAST(w.createdAt AS DATE), e.id, e.name, b.name ORDER BY date DESC, e.name';
+      
+      const reports = await query(sql, params);
+      
+      return NextResponse.json({ success: true, data: reports });
     } else if (type === 'summary') {
       // Overall summary
       const params: Record<string, unknown> = {};

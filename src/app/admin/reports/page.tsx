@@ -20,6 +20,16 @@ interface ReportData {
     workCount: number;
     customerCount: number;
   }[];
+  employeeActivity: {
+    date: string;
+    employeeName: string;
+    employeeId: number;
+    branchName: string;
+    workCount: number;
+    completedCount: number;
+    pendingCount: number;
+    totalWorkValue: number;
+  }[];
   summary: {
     totalRevenue: number;
     totalPayments: number;
@@ -34,6 +44,7 @@ export default function ReportsPage() {
   const [reportData, setReportData] = useState<ReportData>({
     daily: [],
     byBranch: [],
+    employeeActivity: [],
     summary: { totalRevenue: 0, totalPayments: 0, totalWorks: 0, totalCustomers: 0, totalDocuments: 0 }
   });
   const [loading, setLoading] = useState(true);
@@ -60,22 +71,25 @@ export default function ReportsPage() {
       });
       if (filters.branchId) params.append("branchId", filters.branchId);
 
-      // Fetch all three report types
-      const [dailyRes, branchRes, summaryRes] = await Promise.all([
+      // Fetch all four report types
+      const [dailyRes, branchRes, employeeRes, summaryRes] = await Promise.all([
         fetch(`/api/reports?type=daily&${params}`),
         fetch(`/api/reports?type=branch&${params}`),
+        fetch(`/api/reports?type=employee-activity&${params}`),
         fetch(`/api/reports?type=summary&${params}`),
       ]);
 
-      const [dailyData, branchData, summaryData] = await Promise.all([
+      const [dailyData, branchData, employeeData, summaryData] = await Promise.all([
         dailyRes.json(),
         branchRes.json(),
+        employeeRes.json(),
         summaryRes.json(),
       ]);
 
       setReportData({
         daily: dailyData.success ? dailyData.data || [] : [],
         byBranch: branchData.success ? branchData.data || [] : [],
+        employeeActivity: employeeData.success ? employeeData.data || [] : [],
         summary: summaryData.success && summaryData.data ? summaryData.data : { totalRevenue: 0, totalPayments: 0, totalWorks: 0, totalCustomers: 0, totalDocuments: 0 },
       });
     } catch (error) {
@@ -267,6 +281,65 @@ export default function ReportsPage() {
                         <td className="table-cell">{branch.workCount || 0}</td>
                         <td className="table-cell">
                           ₹{(branch.totalAmount || 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Employee Activity Report */}
+          <div className="card">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Employee Activity Tracking
+            </h2>
+            {reportData.employeeActivity.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">
+                No employee activity found for the selected period.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="table-header">Date</th>
+                      <th className="table-header">Employee</th>
+                      <th className="table-header">Branch</th>
+                      <th className="table-header">Total Work</th>
+                      <th className="table-header">Completed</th>
+                      <th className="table-header">Pending</th>
+                      <th className="table-header">Work Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {reportData.employeeActivity.map((activity, index) => (
+                      <tr key={`${activity.employeeId}-${activity.date}-${index}`}>
+                        <td className="table-cell">
+                          {new Date(activity.date).toLocaleDateString()}
+                        </td>
+                        <td className="table-cell font-medium">
+                          {activity.employeeName || 'Unknown'}
+                        </td>
+                        <td className="table-cell">{activity.branchName || 'N/A'}</td>
+                        <td className="table-cell">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                            {activity.workCount}
+                          </span>
+                        </td>
+                        <td className="table-cell">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                            {activity.completedCount}
+                          </span>
+                        </td>
+                        <td className="table-cell">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
+                            {activity.pendingCount}
+                          </span>
+                        </td>
+                        <td className="table-cell">
+                          ₹{(activity.totalWorkValue || 0).toLocaleString()}
                         </td>
                       </tr>
                     ))}
