@@ -156,7 +156,6 @@ export default function DocumentsPage() {
                   <th className="table-header">File Name</th>
                   <th className="table-header">Customer</th>
                   <th className="table-header">Size</th>
-                  <th className="table-header">Uploaded By</th>
                   <th className="table-header">Date</th>
                   <th className="table-header">Actions</th>
                 </tr>
@@ -167,12 +166,11 @@ export default function DocumentsPage() {
                     <td className="table-cell font-medium">
                       <div className="flex items-center gap-2">
                         <span>📄</span>
-                        {doc.fileName}
+                        {doc.originalName}
                       </div>
                     </td>
                     <td className="table-cell">{doc.customerName}</td>
                     <td className="table-cell">{formatFileSize(doc.fileSize)}</td>
-                    <td className="table-cell">{doc.uploadedByName}</td>
                     <td className="table-cell">
                       {new Date(doc.createdAt).toLocaleDateString()}
                     </td>
@@ -228,7 +226,11 @@ export default function DocumentsPage() {
           </div>
 
           {selectedCustomerId && (
-            <FileUpload onUpload={handleUpload} label="Upload PDF (max 10MB)" />
+            <FileUpload 
+              onUpload={handleUpload} 
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" 
+              label="Upload Document or Photo (max 10MB)" 
+            />
           )}
 
           <div className="flex gap-3 pt-4">

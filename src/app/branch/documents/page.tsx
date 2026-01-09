@@ -158,7 +158,11 @@ export default function BranchDocumentsPage() {
             />
           </div>
         </div>
-        <FileUpload onUpload={handleUpload} accept=".pdf" />
+        <FileUpload 
+          onUpload={handleUpload} 
+          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" 
+          label="Upload Document or Photo (max 10MB)"
+        />
       </div>
 
       {/* Filter */}
@@ -200,7 +204,7 @@ export default function BranchDocumentsPage() {
                     <td className="table-cell font-medium">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">📄</span>
-                        {doc.fileName}
+                        {doc.originalName}
                       </div>
                     </td>
                     <td className="table-cell">{doc.customerName}</td>
@@ -210,7 +214,7 @@ export default function BranchDocumentsPage() {
                     </td>
                     <td className="table-cell">
                       <button
-                        onClick={() => handleDownload(doc.id, doc.fileName)}
+                        onClick={() => handleDownload(doc.id, doc.originalName)}
                         className="text-primary-600 hover:text-primary-700 mr-3"
                       >
                         Download

@@ -10,8 +10,8 @@ interface FileUploadProps {
 
 export default function FileUpload({
   onUpload,
-  accept = ".pdf",
-  label = "Upload PDF",
+  accept = ".pdf,.jpg,.jpeg,.png,.gif,.webp",
+  label = "Upload Document or Photo",
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -85,7 +85,7 @@ export default function FileUpload({
         </div>
       ) : (
         <>
-          <div className="text-4xl mb-2">📄</div>
+          <div className="text-4xl mb-2">📄📷</div>
           <p className="text-gray-600 mb-2">
             Drag and drop a file here, or{" "}
             <button
@@ -97,6 +97,9 @@ export default function FileUpload({
             </button>
           </p>
           <p className="text-sm text-gray-400">{label}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Supported: PDF, JPG, PNG, GIF, WebP
+          </p>
         </>
       )}
     </div>

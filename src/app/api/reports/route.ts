@@ -45,22 +45,24 @@ export async function GET(req: NextRequest) {
       
       return NextResponse.json({ success: true, data: reports });
     } else if (type === 'branch') {
-      // Branch-wise summary
+      // Branch-wise summary using Payments table
       let sql = `
         SELECT 
           b.id as branchId,
           b.name as branchName,
-          ISNULL(SUM(w.amount), 0) as totalAmount,
-          COUNT(w.id) as workCount,
-          (SELECT COUNT(*) FROM Customers c WHERE c.branchId = b.id AND c.isActive = 1) as customerCount
+          ISNULL(SUM(p.amount), 0) as totalAmount,
+          COUNT(p.id) as paymentCount,
+          (SELECT COUNT(*) FROM Customers c WHERE c.branchId = b.id AND c.isActive = 1) as customerCount,
+          (SELECT COUNT(*) FROM WorkEntries w WHERE w.branchId = b.id) as workCount
         FROM Branches b
-        LEFT JOIN WorkEntries w ON b.id = w.branchId AND w.status = 'completed'
+        LEFT JOIN Customers c ON b.id = c.branchId
+        LEFT JOIN Payments p ON c.id = p.customerId AND p.status = 'completed'
       `;
       
       const params: Record<string, unknown> = {};
       
       if (startDate && endDate) {
-        sql += ' AND w.createdAt >= @startDate AND w.createdAt <= @endDate';
+        sql += ' AND p.createdAt >= @startDate AND p.createdAt <= @endDate';
         params.startDate = startDate;
         params.endDate = endDate;
       }
@@ -88,12 +90,14 @@ export async function GET(req: NextRequest) {
       
       const summaryData = await query<{
         totalRevenue: number;
+        totalPayments: number;
         totalWorks: number;
         totalCustomers: number;
         totalDocuments: number;
       }>(`
         SELECT 
-          (SELECT ISNULL(SUM(amount), 0) FROM WorkEntries WHERE status = 'completed' ${whereClause}) as totalRevenue,
+          (SELECT ISNULL(SUM(amount), 0) FROM Payments WHERE status = 'completed' ${whereClause ? whereClause.replace('branchId', 'customerId IN (SELECT id FROM Customers WHERE branchId = @branchId)') : ''}) as totalRevenue,
+          (SELECT COUNT(*) FROM Payments WHERE status = 'completed' ${whereClause ? whereClause.replace('branchId', 'customerId IN (SELECT id FROM Customers WHERE branchId = @branchId)') : ''}) as totalPayments,
           (SELECT COUNT(*) FROM WorkEntries WHERE 1=1 ${whereClause}) as totalWorks,
           (SELECT COUNT(*) FROM Customers WHERE isActive = 1) as totalCustomers,
           (SELECT COUNT(*) FROM Documents) as totalDocuments

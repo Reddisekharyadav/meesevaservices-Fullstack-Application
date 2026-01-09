@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
-import { User } from "@/types";
+import { UserSession } from "@/types";
 
 export default function BranchLayout({
   children,
@@ -11,7 +11,7 @@ export default function BranchLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function BranchLayout({
 
   if (!user) return null;
 
-  const menuItems = [
+  const navItems = [
     { href: "/branch", label: "Dashboard", icon: "📊" },
     { href: "/branch/customers", label: "Customers", icon: "👥" },
     { href: "/branch/work", label: "Work Entries", icon: "📝" },
@@ -56,8 +56,9 @@ export default function BranchLayout({
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar
         title="Branch Admin"
-        menuItems={menuItems}
-        user={user}
+        navItems={navItems}
+        userName={user.name}
+        userRole={user.role}
       />
       <main className="flex-1 p-4 md:p-8 mt-16 md:mt-0">{children}</main>
     </div>

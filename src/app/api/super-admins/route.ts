@@ -30,7 +30,7 @@ async function isSuperAdmin(req: NextRequest): Promise<boolean> {
   if (!token) return false;
 
   const payload = await verifyToken(token);
-  return payload?.role === 'super_admin';
+  return payload?.role === 'superAdmin';
 }
 
 async function ensureAccess(req: NextRequest, requireHostKey = false) {

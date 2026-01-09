@@ -73,8 +73,8 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
        VALUES (@customerId, @originalName, @blobName, @fileSize)`,
       {
         customerId: parseInt(customerId),
-        originalName: file.name,
-        blobName: uploadResult.fileName,
+        originalName: uploadResult.originalFileName,
+        blobName: uploadResult.blobName,
         fileSize: uploadResult.fileSize,
       }
     );
@@ -85,7 +85,8 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
       success: true,
       data: {
         id: insertedId,
-        fileName: uploadResult.fileName,
+        originalName: uploadResult.originalFileName,
+        blobName: uploadResult.blobName,
         blobUrl: uploadResult.blobUrl,
       },
     });

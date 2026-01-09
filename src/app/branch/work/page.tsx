@@ -183,6 +183,7 @@ export default function BranchWorkPage() {
                 setFormData({ ...formData, customerId: e.target.value })
               }
               className="input-field"
+              title="Select a customer for the work entry"
               required
             >
               <option value="">Select Customer</option>
@@ -205,6 +206,7 @@ export default function BranchWorkPage() {
                 setFormData({ ...formData, description: e.target.value })
               }
               className="input-field"
+              placeholder="Enter work description"
               required
             />
           </div>
@@ -223,6 +225,7 @@ export default function BranchWorkPage() {
                 className="input-field"
                 min="0"
                 step="0.01"
+                placeholder="Enter amount"
                 required
               />
             </div>
@@ -237,6 +240,7 @@ export default function BranchWorkPage() {
                   setFormData({ ...formData, status: e.target.value })
                 }
                 className="input-field"
+                title="Select work entry status"
               >
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>

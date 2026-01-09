@@ -195,10 +195,11 @@ export default function BranchPaymentsPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="customer-select" className="block text-sm font-medium text-gray-700 mb-1">
               Customer
             </label>
             <select
+              id="customer-select"
               value={formData.customerId}
               onChange={(e) =>
                 setFormData({
@@ -220,10 +221,11 @@ export default function BranchPaymentsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="work-entry-select" className="block text-sm font-medium text-gray-700 mb-1">
               Link to Work Entry (Optional)
             </label>
             <select
+              id="work-entry-select"
               value={formData.workEntryId}
               onChange={(e) =>
                 setFormData({ ...formData, workEntryId: e.target.value })
@@ -253,15 +255,17 @@ export default function BranchPaymentsPage() {
                 className="input-field"
                 min="0"
                 step="0.01"
+                placeholder="Enter amount"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="payment-mode-select" className="block text-sm font-medium text-gray-700 mb-1">
                 Payment Mode
               </label>
               <select
+                id="payment-mode-select"
                 value={formData.mode}
                 onChange={(e) =>
                   setFormData({
@@ -278,16 +282,18 @@ export default function BranchPaymentsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="notes-textarea" className="block text-sm font-medium text-gray-700 mb-1">
               Notes
             </label>
             <textarea
+              id="notes-textarea"
               value={formData.notes}
               onChange={(e) =>
                 setFormData({ ...formData, notes: e.target.value })
               }
               className="input-field"
               rows={2}
+              placeholder="Add any notes about the payment..."
             />
           </div>
 

@@ -16,11 +16,13 @@ interface ReportData {
     branchId: number;
     branchName: string;
     totalAmount: number;
+    paymentCount: number;
     workCount: number;
     customerCount: number;
   }[];
   summary: {
     totalRevenue: number;
+    totalPayments: number;
     totalWorks: number;
     totalCustomers: number;
     totalDocuments: number;
@@ -32,7 +34,7 @@ export default function ReportsPage() {
   const [reportData, setReportData] = useState<ReportData>({
     daily: [],
     byBranch: [],
-    summary: { totalRevenue: 0, totalWorks: 0, totalCustomers: 0, totalDocuments: 0 }
+    summary: { totalRevenue: 0, totalPayments: 0, totalWorks: 0, totalCustomers: 0, totalDocuments: 0 }
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -74,7 +76,7 @@ export default function ReportsPage() {
       setReportData({
         daily: dailyData.success ? dailyData.data || [] : [],
         byBranch: branchData.success ? branchData.data || [] : [],
-        summary: summaryData.success && summaryData.data ? summaryData.data : { totalRevenue: 0, totalWorks: 0, totalCustomers: 0, totalDocuments: 0 },
+        summary: summaryData.success && summaryData.data ? summaryData.data : { totalRevenue: 0, totalPayments: 0, totalWorks: 0, totalCustomers: 0, totalDocuments: 0 },
       });
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -163,11 +165,17 @@ export default function ReportsPage() {
       ) : (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="card bg-green-50">
               <p className="text-sm text-green-600 font-medium">Total Revenue</p>
               <p className="text-2xl font-bold text-green-700">
                 ₹{(reportData.summary?.totalRevenue || 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="card bg-indigo-50">
+              <p className="text-sm text-indigo-600 font-medium">Payments</p>
+              <p className="text-2xl font-bold text-indigo-700">
+                {reportData.summary?.totalPayments || 0}
               </p>
             </div>
             <div className="card bg-blue-50">
@@ -243,6 +251,7 @@ export default function ReportsPage() {
                     <tr>
                       <th className="table-header">Branch</th>
                       <th className="table-header">Customers</th>
+                      <th className="table-header">Payments</th>
                       <th className="table-header">Work Entries</th>
                       <th className="table-header">Revenue</th>
                     </tr>
@@ -254,6 +263,7 @@ export default function ReportsPage() {
                           {branch.branchName}
                         </td>
                         <td className="table-cell">{branch.customerCount || 0}</td>
+                        <td className="table-cell">{branch.paymentCount || 0}</td>
                         <td className="table-cell">{branch.workCount || 0}</td>
                         <td className="table-cell">
                           ₹{(branch.totalAmount || 0).toLocaleString()}

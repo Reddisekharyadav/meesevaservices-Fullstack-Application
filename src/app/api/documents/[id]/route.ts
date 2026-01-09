@@ -12,10 +12,9 @@ export async function GET(
   try {
     const { id } = await params;
     const document = await queryOne<Document>(
-      `SELECT d.*, c.name as customerName, e.name as uploadedByName
+      `SELECT d.*, c.name as customerName
        FROM Documents d
        LEFT JOIN Customers c ON d.customerId = c.id
-       LEFT JOIN Employees e ON d.uploadedBy = e.id
        WHERE d.id = @id`,
       { id: parseInt(id) }
     );
@@ -28,12 +27,22 @@ export async function GET(
     }
     
     // Generate a SAS URL for secure download
-    let downloadUrl = document.blobUrl;
+    let downloadUrl: string;
     try {
-      downloadUrl = await generateSasUrl(document.blobUrl, 60);
+      // Construct the full blob URL from the blob name
+      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || '';
+      const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'documents';
+      const accountName = connectionString.split('AccountName=')[1]?.split(';')[0];
+      const fullBlobUrl = `https://${accountName}.blob.core.windows.net/${containerName}/${document.blobName}`;
+      
+      downloadUrl = await generateSasUrl(fullBlobUrl, 60);
     } catch (e) {
-      // If SAS generation fails, use public URL
-      console.warn('SAS generation failed, using public URL');
+      console.error('SAS generation failed:', e);
+      // Return an error instead of falling back to public URL
+      return NextResponse.json(
+        { success: false, error: 'Failed to generate download URL' },
+        { status: 500 }
+      );
     }
     
     return NextResponse.json({
@@ -60,7 +69,7 @@ export const DELETE = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     
     // Get document to delete from blob storage
     const document = await queryOne<Document>(
-      'SELECT blobUrl FROM Documents WHERE id = @id',
+      'SELECT blobName FROM Documents WHERE id = @id',
       { id: parseInt(id!) }
     );
     
@@ -73,7 +82,13 @@ export const DELETE = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     
     // Delete from blob storage
     try {
-      await deleteFile(document.blobUrl);
+      // Construct full blob URL for deletion
+      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || '';
+      const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'documents';
+      const accountName = connectionString.split('AccountName=')[1]?.split(';')[0];
+      const fullBlobUrl = `https://${accountName}.blob.core.windows.net/${containerName}/${document.blobName}`;
+      
+      await deleteFile(fullBlobUrl);
     } catch (e) {
       console.warn('Failed to delete blob:', e);
     }

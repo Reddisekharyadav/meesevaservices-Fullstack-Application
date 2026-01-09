@@ -17,7 +17,6 @@ export default function WorkEntriesPage() {
     customerId: "",
     description: "",
     amount: "",
-    paymentMode: "pending" as "cash" | "upi" | "test" | "pending",
     branchId: "",
   });
 
@@ -52,7 +51,6 @@ export default function WorkEntriesPage() {
       customerId: "",
       description: "",
       amount: "",
-      paymentMode: "pending",
       branchId: branches[0]?.id.toString() || "",
     });
     setIsModalOpen(true);
@@ -69,7 +67,6 @@ export default function WorkEntriesPage() {
           customerId: parseInt(formData.customerId),
           description: formData.description,
           amount: parseFloat(formData.amount) || 0,
-          paymentMode: formData.paymentMode,
           branchId: parseInt(formData.branchId),
         }),
       });
@@ -103,16 +100,6 @@ export default function WorkEntriesPage() {
     } catch (error) {
       console.error("Error updating entry:", error);
     }
-  };
-
-  const getPaymentBadge = (mode: string) => {
-    const badges: Record<string, string> = {
-      cash: "bg-green-100 text-green-700",
-      upi: "bg-blue-100 text-blue-700",
-      test: "bg-purple-100 text-purple-700",
-      pending: "bg-yellow-100 text-yellow-700",
-    };
-    return badges[mode] || badges.pending;
   };
 
   const filteredCustomers = formData.branchId
@@ -164,9 +151,7 @@ export default function WorkEntriesPage() {
                   <th className="table-header">Customer</th>
                   <th className="table-header">Description</th>
                   <th className="table-header">Amount</th>
-                  <th className="table-header">Payment</th>
                   <th className="table-header">Status</th>
-                  <th className="table-header">Employee</th>
                   <th className="table-header">Actions</th>
                 </tr>
               </thead>
@@ -180,15 +165,6 @@ export default function WorkEntriesPage() {
                     <td className="table-cell">₹{entry.amount.toLocaleString()}</td>
                     <td className="table-cell">
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentBadge(
-                          entry.paymentMode
-                        )}`}
-                      >
-                        {entry.paymentMode}
-                      </span>
-                    </td>
-                    <td className="table-cell">
-                      <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
                           entry.status === "completed"
                             ? "bg-green-100 text-green-700"
@@ -198,7 +174,6 @@ export default function WorkEntriesPage() {
                         {entry.status}
                       </span>
                     </td>
-                    <td className="table-cell">{entry.employeeName}</td>
                     <td className="table-cell">
                       {entry.status !== "completed" && (
                         <button
@@ -240,7 +215,7 @@ export default function WorkEntriesPage() {
               <option value="">Select Branch</option>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
-                  {branch.name} - {branch.city}
+                  {branch.name}
                 </option>
               ))}
             </select>
@@ -284,45 +259,22 @@ export default function WorkEntriesPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount (₹)
-              </label>
-              <input
-                type="number"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
-                className="input-field"
-                min="0"
-                step="0.01"
-                placeholder="Enter amount"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Mode
-              </label>
-              <select
-                value={formData.paymentMode}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    paymentMode: e.target.value as typeof formData.paymentMode,
-                  })
-                }
-                className="input-field"
-                aria-label="Payment Mode"
-              >
-                <option value="pending">Pending</option>
-                <option value="cash">Cash</option>
-                <option value="upi">UPI</option>
-                <option value="test">Test Payment</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Amount (₹)
+            </label>
+            <input
+              type="number"
+              value={formData.amount}
+              onChange={(e) =>
+                setFormData({ ...formData, amount: e.target.value })
+              }
+              className="input-field"
+              min="0"
+              step="0.01"
+              placeholder="Enter amount"
+              required
+            />
           </div>
 
           <div className="flex gap-3 pt-4">

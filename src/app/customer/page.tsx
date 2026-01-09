@@ -87,7 +87,7 @@ export default function CustomerDashboard() {
           title="Pending Work"
           value={stats.pendingWork}
           icon="⏳"
-          color="orange"
+          color="yellow"
         />
       </div>
 

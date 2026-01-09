@@ -94,7 +94,7 @@ export default function EmployeeDashboard() {
           title="Pending"
           value={stats.pendingWork}
           icon="⏳"
-          color="orange"
+          color="yellow"
         />
         <StatsCard
           title="Documents Uploaded"

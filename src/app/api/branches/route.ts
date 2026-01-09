@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, execute } from '@/lib/db';
+import { query, queryOne, execute } from '@/lib/db';
 import { withSuperAdminAuth, withEmployeeAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { Branch } from '@/types';
 
@@ -33,8 +33,12 @@ export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
       );
     }
     
-    // Use the logged-in admin's phone number
-    const adminPhone = req.user?.phone || null;
+    // Get the logged-in admin's phone number from database
+    const adminData = await queryOne<{ phone: string }>(
+      `SELECT phone FROM Employees WHERE id = @adminId`,
+      { adminId: req.user.id }
+    );
+    const adminPhone = adminData?.phone || null;
     
     const result = await execute(
       `INSERT INTO Branches (name, code, address, phone) 

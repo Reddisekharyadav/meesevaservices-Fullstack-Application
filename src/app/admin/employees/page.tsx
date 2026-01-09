@@ -122,8 +122,8 @@ export default function EmployeesPage() {
 
   const getRoleBadge = (role: string) => {
     const badges: Record<string, string> = {
-      super_admin: "bg-purple-100 text-purple-700",
-      branch_admin: "bg-blue-100 text-blue-700",
+      superAdmin: "bg-purple-100 text-purple-700",
+      branchAdmin: "bg-blue-100 text-blue-700",
       employee: "bg-gray-100 text-gray-700",
     };
     return badges[role] || badges.employee;
@@ -303,7 +303,7 @@ export default function EmployeesPage() {
               <option value="">No Branch (Super Admin)</option>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
-                  {branch.name} - {branch.city}
+                  {branch.name}
                 </option>
               ))}
             </select>

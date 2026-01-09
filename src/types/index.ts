@@ -122,6 +122,7 @@ export interface BranchReport {
   branchId: number;
   branchName: string;
   totalAmount: number;
+  paymentCount: number;
   workCount: number;
   customerCount: number;
 }

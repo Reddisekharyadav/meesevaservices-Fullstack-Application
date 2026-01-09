@@ -17,7 +17,7 @@ export default function BranchCustomersPage() {
     name: "",
     phone: "",
     password: "",
-    address: "",
+    email: "",
   });
 
   const fetchCustomers = async () => {
@@ -51,11 +51,11 @@ export default function BranchCustomersPage() {
         name: customer.name,
         phone: customer.phone,
         password: "",
-        address: (customer as any).address || "",
+        email: customer.email || "",
       });
     } else {
       setEditingCustomer(null);
-      setFormData({ name: "", phone: "", password: "", address: "" });
+      setFormData({ name: "", phone: "", password: "", email: "" });
     }
     setIsModalOpen(true);
   };
@@ -133,7 +133,7 @@ export default function BranchCustomersPage() {
                 <tr>
                   <th className="table-header">Name</th>
                   <th className="table-header">Phone</th>
-                  <th className="table-header">Address</th>
+                  <th className="table-header">Email</th>
                   <th className="table-header">Actions</th>
                 </tr>
               </thead>
@@ -142,7 +142,7 @@ export default function BranchCustomersPage() {
                   <tr key={customer.id}>
                     <td className="table-cell font-medium">{customer.name}</td>
                     <td className="table-cell">{customer.phone}</td>
-                    <td className="table-cell">{(customer as any).address || "-"}</td>
+                    <td className="table-cell">{customer.email || "-"}</td>
                     <td className="table-cell">
                       <button
                         onClick={() => handleOpenModal(customer)}
@@ -176,6 +176,9 @@ export default function BranchCustomersPage() {
                 setFormData({ ...formData, name: e.target.value })
               }
               className="input-field"
+              placeholder="Enter customer name"
+              title="Enter customer name"
+              aria-label="Customer name"
               required
             />
           </div>
@@ -191,6 +194,9 @@ export default function BranchCustomersPage() {
                 setFormData({ ...formData, phone: e.target.value })
               }
               className="input-field"
+              placeholder="Enter phone number"
+              title="Enter customer phone number"
+              aria-label="Customer phone number"
               required
             />
           </div>
@@ -215,18 +221,19 @@ export default function BranchCustomersPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address
+              Email
             </label>
-            <textarea
-              value={formData.address}
+            <input
+              type="email"
+              value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
+                setFormData({ ...formData, email: e.target.value })
               }
               className="input-field"
-              rows={2}
-              placeholder="Enter address"
-              title="Enter customer address"
-              aria-label="Customer address"
+              placeholder="Enter email address"
+              title="Enter customer email"
+              aria-label="Customer email"
+              required
             />
           </div>
 

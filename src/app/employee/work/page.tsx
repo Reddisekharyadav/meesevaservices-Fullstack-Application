@@ -46,7 +46,6 @@ export default function EmployeeWorkPage() {
   const getStatusBadge = (status: string) => {
     const badges: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-700",
-      in_progress: "bg-blue-100 text-blue-700",
       completed: "bg-green-100 text-green-700",
     };
     return badges[status] || badges.pending;
@@ -75,10 +74,10 @@ export default function EmployeeWorkPage() {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="input-field w-full md:w-48"
+          aria-label="Filter work entries by status"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
-          <option value="in_progress">In Progress</option>
           <option value="completed">Completed</option>
         </select>
       </div>
@@ -116,16 +115,6 @@ export default function EmployeeWorkPage() {
 
                 <div className="flex gap-2">
                   {entry.status === "pending" && (
-                    <button
-                      onClick={() =>
-                        handleUpdateStatus(entry.id, "in_progress")
-                      }
-                      className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                    >
-                      Start Work
-                    </button>
-                  )}
-                  {entry.status === "in_progress" && (
                     <button
                       onClick={() => handleUpdateStatus(entry.id, "completed")}
                       className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"

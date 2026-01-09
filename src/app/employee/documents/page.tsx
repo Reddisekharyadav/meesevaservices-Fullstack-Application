@@ -85,10 +85,11 @@ export default function EmployeeDocumentsPage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="customer-select" className="block text-sm font-medium text-gray-700 mb-1">
               Select Customer
             </label>
             <select
+              id="customer-select"
               value={uploadCustomerId}
               onChange={(e) => setUploadCustomerId(e.target.value)}
               className="input-field"
@@ -114,7 +115,11 @@ export default function EmployeeDocumentsPage() {
             />
           </div>
         </div>
-        <FileUpload onUpload={handleUpload} accept=".pdf" label="Upload PDF (max 10MB)" />
+        <FileUpload 
+          onUpload={handleUpload} 
+          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" 
+          label="Upload Document or Photo (max 10MB)" 
+        />
       </div>
 
       {/* Recent Uploads */}

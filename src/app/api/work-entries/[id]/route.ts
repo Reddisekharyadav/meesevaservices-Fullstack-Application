@@ -43,18 +43,17 @@ export const PUT = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     const url = new URL(req.url);
     const id = url.pathname.split('/').pop();
     const body = await req.json();
-    const { description, amount, paymentMode, status } = body;
+    const { description, amount, status } = body;
     
     await execute(
       `UPDATE WorkEntries 
        SET description = @description, amount = @amount, 
-           paymentMode = @paymentMode, status = @status, updatedAt = GETUTCDATE()
+           status = @status, updatedAt = GETUTCDATE()
        WHERE id = @id`,
       {
         id: parseInt(id!),
         description,
         amount: amount || 0,
-        paymentMode: paymentMode || 'pending',
         status: status || 'pending',
       }
     );

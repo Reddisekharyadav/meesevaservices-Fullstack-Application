@@ -81,11 +81,11 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     
     const insertedId = (result.recordset as { id: number }[])[0]?.id;
     
-    // Update work entry payment mode if linked
+    // Update work entry status if linked
     if (workEntryId) {
       await execute(
-        `UPDATE WorkEntries SET paymentMode = @mode, status = 'completed' WHERE id = @id`,
-        { id: workEntryId, mode }
+        `UPDATE WorkEntries SET status = 'completed' WHERE id = @id`,
+        { id: workEntryId }
       );
     }
     

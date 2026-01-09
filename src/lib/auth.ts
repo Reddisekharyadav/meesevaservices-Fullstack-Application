@@ -66,7 +66,7 @@ export async function getCurrentUser(): Promise<JWTPayload | null> {
 }
 
 export function canAccessBranch(user: JWTPayload, branchId: number): boolean {
-  if (user.role === 'super_admin') return true;
+  if (user.role === 'superAdmin') return true;
   if (user.role === 'customer') return false;
   return user.branchId === branchId;
 }

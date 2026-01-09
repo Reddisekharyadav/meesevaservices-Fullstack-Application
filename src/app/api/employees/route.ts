@@ -51,8 +51,12 @@ export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
       );
     }
     
-    // Use the logged-in admin's phone number
-    const adminPhone = req.user?.phone || null;
+    // Get the logged-in admin's phone number from database
+    const adminData = await queryOne<{ phone: string }>(
+      `SELECT phone FROM Employees WHERE id = @adminId`,
+      { adminId: req.user.id }
+    );
+    const adminPhone = adminData?.phone || null;
     
     // Check if email already exists
     const existingEmail = await queryOne<Employee>(

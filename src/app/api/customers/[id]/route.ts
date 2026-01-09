@@ -59,7 +59,7 @@ export const PUT = withAdminAuth(async (req: AuthenticatedRequest) => {
     }
     
     // Check branch access
-    if (req.user.role === 'branch_admin' && req.user.branchId !== current.branchId) {
+    if (req.user.role === 'branchAdmin' && req.user.branchId !== current.branchId) {
       return NextResponse.json(
         { success: false, error: 'Cannot update customer from another branch' },
         { status: 403 }
