@@ -3,14 +3,15 @@ import { query, queryOne, execute } from '@/lib/db';
 import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { Payment } from '@/types';
 
-// GET all payments
-export async function GET(req: NextRequest) {
+// GET all payments for current tenant
+export const GET = withAdminAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get('customerId');
     const branchId = searchParams.get('branchId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const tenantId = req.user.tenantId;
     
     let sql = `
       SELECT p.id, p.customerId, p.workEntryId, p.amount, p.mode, p.status,
@@ -18,10 +19,10 @@ export async function GET(req: NextRequest) {
              c.name as customerName
       FROM Payments p
       LEFT JOIN Customers c ON p.customerId = c.id
-      WHERE 1=1
+      WHERE p.tenantId = @tenantId
     `;
     
-    const params: Record<string, unknown> = {};
+    const params: Record<string, unknown> = { tenantId };
     
     if (customerId) {
       sql += ' AND p.customerId = @customerId';
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // POST create new payment (manual recording)
 export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {

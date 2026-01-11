@@ -13,6 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/images/logos/Logo.png" type="image/png" />
+      </head>
       <body className="min-h-screen bg-gray-50">{children}</body>
     </html>
   );

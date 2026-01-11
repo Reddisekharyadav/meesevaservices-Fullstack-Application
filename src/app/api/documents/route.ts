@@ -4,22 +4,23 @@ import { withEmployeeAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { uploadFile } from '@/lib/blob';
 import { Document } from '@/types';
 
-// GET all documents
-export async function GET(req: NextRequest) {
+// GET all documents for current tenant
+export const GET = withEmployeeAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get('customerId');
     const branchId = searchParams.get('branchId');
+    const tenantId = req.user.tenantId;
     
     let sql = `
       SELECT d.id, d.customerId, d.originalName, d.blobName, d.fileSize, d.createdAt,
              c.name as customerName
       FROM Documents d
       LEFT JOIN Customers c ON d.customerId = c.id
-      WHERE 1=1
+      WHERE d.tenantId = @tenantId
     `;
     
-    const params: Record<string, unknown> = {};
+    const params: Record<string, unknown> = { tenantId };
     
     if (customerId) {
       sql += ' AND d.customerId = @customerId';
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // POST upload new document
 export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {

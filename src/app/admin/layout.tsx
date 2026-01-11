@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 
 const adminNavItems = [
   { label: "Dashboard", href: "/admin", icon: "📊" },
@@ -60,14 +61,17 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
-      <Sidebar
-        title="Seva Center"
-        navItems={adminNavItems}
-        userName={user?.name}
-        userRole="Super Admin"
-      />
-      <main className="flex-1 p-8 md:ml-0">{children}</main>
+    <div className="min-h-screen flex flex-col">
+      <Header title="Admin Dashboard" />
+      <div className="flex flex-1">
+        <Sidebar
+          title="Seva Center"
+          navItems={adminNavItems}
+          userName={user?.name}
+          userRole="Super Admin"
+        />
+        <main className="flex-1 p-8 md:ml-0">{children}</main>
+      </div>
     </div>
   );
 }

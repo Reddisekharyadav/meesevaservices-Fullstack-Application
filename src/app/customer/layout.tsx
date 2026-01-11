@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
 import { UserSession } from "@/types";
 
 export default function CustomerLayout({
@@ -49,22 +50,8 @@ export default function CustomerLayout({
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-primary-600">Seva Center</h1>
-            <p className="text-sm text-gray-500">Welcome, {user.name}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-600 hover:text-red-600 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Header title={`Welcome, ${user.name}`} />
 
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-200">
@@ -88,11 +75,17 @@ export default function CustomerLayout({
             >
               Payment History
             </a>
+            <button
+              onClick={handleLogout}
+              className="py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-red-600 font-medium text-sm ml-auto"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         {children}
       </main>
     </div>
