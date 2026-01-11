@@ -6,12 +6,25 @@ export type PaymentMode = 'cash' | 'upi' | 'test' | 'pending';
 export type PaymentStatus = 'pending' | 'completed' | 'failed';
 export type WorkStatus = 'pending' | 'completed';
 
+export interface Business {
+  id: string;
+  name: string;
+  logo?: string;
+  website?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
 export interface Branch {
   id: number;
   name: string;
   code: string;
   address: string | null;
   phone: string | null;
+  tenantId: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -26,6 +39,7 @@ export interface Employee {
   role: Role;
   branchId: number | null;
   branchName?: string;
+  tenantId: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +53,7 @@ export interface Customer {
   password?: string;
   branchId: number;
   branchName?: string;
+  tenantId: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +65,9 @@ export interface WorkEntry {
   customerName?: string;
   branchId: number;
   branchName?: string;
+  employeeId?: number;
+  employeeName?: string;
+  tenantId: string;
   description: string;
   amount: number;
   status: WorkStatus;
@@ -64,6 +82,7 @@ export interface Document {
   originalName: string;
   blobName: string;
   fileSize: number | null;
+  tenantId: string;
   createdAt: Date;
 }
 
@@ -78,6 +97,7 @@ export interface Payment {
   razorpayOrderId: string | null;
   razorpayPaymentId: string | null;
   notes: string | null;
+  tenantId: string;
   createdAt: Date;
 }
 
@@ -88,6 +108,7 @@ export interface UserSession {
   phone: string;
   role: Role | CustomerRole;
   branchId: number | null;
+  tenantId: string;
   userType: 'employee' | 'customer';
 }
 
@@ -96,6 +117,7 @@ export interface JWTPayload {
   role: Role | CustomerRole;
   userType: 'employee' | 'customer';
   branchId: number | null;
+  tenantId: string;
   iat: number;
   exp: number;
 }

@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         phone: employee.phone,
         role: employee.role,
         branchId: employee.branchId,
+        tenantId: employee.tenantId,
         userType: 'employee',
       };
     } else if (userType === 'customer') {
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
         phone: customer.phone,
         role: 'customer',
         branchId: customer.branchId,
+        tenantId: customer.tenantId,
         userType: 'customer',
       };
     } else {

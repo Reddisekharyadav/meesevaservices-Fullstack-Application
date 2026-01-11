@@ -20,6 +20,7 @@ export async function createToken(user: UserSession): Promise<string> {
     role: user.role,
     userType: user.userType,
     branchId: user.branchId,
+    tenantId: user.tenantId,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

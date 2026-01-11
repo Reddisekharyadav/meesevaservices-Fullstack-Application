@@ -4,22 +4,23 @@ import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { hashPassword } from '@/lib/auth';
 import { Customer } from '@/types';
 
-// GET all customers
-export async function GET(req: NextRequest) {
+// GET customers for current tenant
+export const GET = withAdminAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const branchId = searchParams.get('branchId');
     const search = searchParams.get('search');
+    const tenantId = req.user.tenantId;
     
     let sql = `
-      SELECT c.id, c.name, c.phone, c.email, c.branchId, c.isActive, c.createdAt,
+      SELECT c.id, c.name, c.phone, c.email, c.branchId, c.tenantId, c.isActive, c.createdAt,
              b.name as branchName
       FROM Customers c
       LEFT JOIN Branches b ON c.branchId = b.id
-      WHERE 1=1
+      WHERE c.tenantId = @tenantId
     `;
     
-    const params: Record<string, unknown> = {};
+    const params: Record<string, unknown> = { tenantId };
     
     if (branchId) {
       sql += ' AND c.branchId = @branchId';
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // POST create new customer (admin only)
 export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
@@ -82,15 +83,16 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     const hashedPassword = await hashPassword(password);
     
     const result = await execute(
-      `INSERT INTO Customers (name, phone, email, passwordHash, branchId)
+      `INSERT INTO Customers (name, phone, email, passwordHash, branchId, tenantId)
        OUTPUT INSERTED.id
-       VALUES (@name, @phone, @email, @passwordHash, @branchId)`,
+       VALUES (@name, @phone, @email, @passwordHash, @branchId, @tenantId)`,
       {
         name,
         phone,
         email,
         passwordHash: hashedPassword,
         branchId,
+        tenantId: req.user.tenantId,
       }
     );
     
@@ -99,12 +101,13 @@ export const POST = withAdminAuth(async (req: AuthenticatedRequest) => {
     // Auto-create work entry for new customer registration
     try {
       await execute(
-        `INSERT INTO WorkEntries (customerId, branchId, employeeId, description, amount, status)
-         VALUES (@customerId, @branchId, @employeeId, @description, @amount, 'pending')`,
+        `INSERT INTO WorkEntries (customerId, branchId, employeeId, tenantId, description, amount, status)
+         VALUES (@customerId, @branchId, @employeeId, @tenantId, @description, @amount, 'pending')`,
         {
           customerId: insertedId,
           branchId: branchId,
           employeeId: req.user.id,
+          tenantId: req.user.tenantId,
           description: `Customer registration - ${name}`,
           amount: 0,
         }

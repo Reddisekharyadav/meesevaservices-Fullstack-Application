@@ -3,11 +3,14 @@ import { query, queryOne, execute } from '@/lib/db';
 import { withSuperAdminAuth, withEmployeeAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { Branch } from '@/types';
 
-// GET all branches
-export async function GET(req: NextRequest) {
+// GET all branches for current tenant
+export const GET = withEmployeeAuth(async (req: AuthenticatedRequest) => {
   try {
+    const tenantId = req.user.tenantId;
+    
     const branches = await query<Branch>(
-      'SELECT * FROM Branches ORDER BY name'
+      'SELECT * FROM Branches WHERE tenantId = @tenantId ORDER BY name',
+      { tenantId }
     );
     
     return NextResponse.json({ success: true, data: branches });
@@ -18,7 +21,7 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // POST create new branch (super admin only)
 export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
@@ -41,10 +44,16 @@ export const POST = withSuperAdminAuth(async (req: AuthenticatedRequest) => {
     const adminPhone = adminData?.phone || null;
     
     const result = await execute(
-      `INSERT INTO Branches (name, code, address, phone) 
+      `INSERT INTO Branches (name, code, address, phone, tenantId) 
        OUTPUT INSERTED.id
-       VALUES (@name, @code, @address, @phone)`,
-      { name, code, address: address || null, phone: adminPhone }
+       VALUES (@name, @code, @address, @phone, @tenantId)`,
+      { 
+        name, 
+        code, 
+        address: address || null, 
+        phone: adminPhone,
+        tenantId: req.user.tenantId 
+      }
     );
     
     const insertedId = (result.recordset as { id: number }[])[0]?.id;

@@ -3,8 +3,8 @@ import { query, execute } from '@/lib/db';
 import { withEmployeeAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { WorkEntry } from '@/types';
 
-// GET all work entries
-export async function GET(req: NextRequest) {
+// GET work entries for current tenant
+export const GET = withEmployeeAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const branchId = searchParams.get('branchId');
@@ -12,19 +12,20 @@ export async function GET(req: NextRequest) {
     const date = searchParams.get('date');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const tenantId = req.user.tenantId;
     
     let sql = `
-      SELECT w.id, w.customerId, w.branchId, w.employeeId, w.description,
+      SELECT w.id, w.customerId, w.branchId, w.employeeId, w.tenantId, w.description,
              w.amount, w.status, w.createdAt,
              c.name as customerName, b.name as branchName, e.name as employeeName
       FROM WorkEntries w
       LEFT JOIN Customers c ON w.customerId = c.id
       LEFT JOIN Branches b ON w.branchId = b.id
       LEFT JOIN Employees e ON w.employeeId = e.id
-      WHERE 1=1
+      WHERE w.tenantId = @tenantId
     `;
     
-    const params: Record<string, unknown> = {};
+    const params: Record<string, unknown> = { tenantId };
     
     if (branchId) {
       sql += ' AND w.branchId = @branchId';
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // POST create new work entry
 export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
@@ -85,13 +86,14 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     }
     
     const result = await execute(
-      `INSERT INTO WorkEntries (customerId, branchId, employeeId, description, amount, status)
+      `INSERT INTO WorkEntries (customerId, branchId, employeeId, tenantId, description, amount, status)
        OUTPUT INSERTED.id
-       VALUES (@customerId, @branchId, @employeeId, @description, @amount, @status)`,
+       VALUES (@customerId, @branchId, @employeeId, @tenantId, @description, @amount, @status)`,
       {
         customerId,
         branchId: effectiveBranchId,
         employeeId: req.user.id,
+        tenantId: req.user.tenantId,
         description,
         amount: amount || 0,
         status: 'pending',
