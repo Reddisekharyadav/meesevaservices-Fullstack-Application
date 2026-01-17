@@ -1,5 +1,6 @@
 # Seva Center - Multi-Branch Service Management System
-
+Live Demo: [https://seva-center.azurewebsites.net](https://sevacenter-app.azurewebsites.net/)
+(Deployed on Azure App Service – Use the seeded demo credentials to log in and explore all roles.)
 A production-ready full-stack web application for managing a multi-branch local service business. Built with Next.js, TypeScript, Azure SQL Database, and Azure Blob Storage.
 
 ## 🚀 Features
