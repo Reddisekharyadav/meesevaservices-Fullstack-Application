@@ -1,117 +1,118 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
 import FileUpload from "@/components/FileUpload";
 import { Document, Customer } from "@/types";
 
-// Extend Document type to include description property
-interface DocumentWithDescription extends Document {
-  description?: string;
-}
-
-export default function BranchDocumentsPage() {
-  const [documents, setDocuments] = useState<DocumentWithDescription[]>([]);
+export default function DocumentsPage() {
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
-  const [uploadCustomerId, setUploadCustomerId] = useState("");
-  const [description, setDescription] = useState("");
+  const [filterCustomerId, setFilterCustomerId] = useState("");
 
   const fetchData = async () => {
-    try {
-      const params = new URLSearchParams();
-      if (selectedCustomerId) params.append("customerId", selectedCustomerId);
+  try {
+    console.log("📄 Fetching documents...");
+    setLoading(true);
 
-      const [docsRes, custRes] = await Promise.all([
-        fetch(`/api/documents?${params}`),
-        fetch("/api/customers"),
-      ]);
-
-      const docsData = await docsRes.json();
-      const custData = await custRes.json();
-
-      if (docsData.success) setDocuments(docsData.data);
-      if (custData.success) setCustomers(custData.data);
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
+    let url = "/api/documents";
+    if (filterCustomerId) {
+      url += `?customerId=${filterCustomerId}`;
     }
-  };
+
+    console.log("➡️ Documents URL:", url);
+
+    const docsRes = await fetch(url);
+    console.log("📥 Documents response status:", docsRes.status);
+
+    const docsText = await docsRes.text();
+    console.log("📦 Raw documents response:", docsText);
+
+    const docsData = JSON.parse(docsText);
+    console.log("✅ Parsed documents:", docsData);
+
+    const custRes = await fetch("/api/customers");
+    const custData = await custRes.json();
+
+    if (docsData.success) {
+      console.log("🧾 Setting documents:", docsData.data);
+      setDocuments(docsData.data);
+    } else {
+      console.error("❌ Documents API error:", docsData.error);
+    }
+
+    if (custData.success) setCustomers(custData.data);
+  } catch (err) {
+    console.error("🔥 Frontend fetch error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchData();
-  }, [selectedCustomerId]);
+  }, [filterCustomerId]);
 
   const handleUpload = async (file: File) => {
-    if (!uploadCustomerId) {
-      alert("Please select a customer first");
+    if (!selectedCustomerId) {
+      alert("Select a customer first");
       return;
     }
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("customerId", uploadCustomerId);
-    if (description) formData.append("description", description);
+    formData.append("customerId", selectedCustomerId);
 
-    try {
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        body: formData,
-      });
+    const res = await fetch("/api/documents", {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data.success) {
-        setDescription("");
-        fetchData();
-      } else {
-        alert(data.error || "Upload failed");
-      }
-    } catch (error) {
-      alert("An error occurred during upload");
-    }
-  };
-
-  const handleDownload = async (id: number, filename: string) => {
-    try {
-      const res = await fetch(`/api/documents/${id}`);
-      const data = await res.json();
-
-      if (data.success && data.data.downloadUrl) {
-        const link = document.createElement("a");
-        link.href = data.data.downloadUrl;
-        link.download = filename;
-        link.target = "_blank";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    } catch (error) {
-      console.error("Download error:", error);
+    if (data.success) {
+      setIsModalOpen(false);
+      setSelectedCustomerId("");
+      fetchData();
+      alert("Document uploaded");
+    } else {
+      alert(data.error || "Upload failed");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this document?")) return;
+    if (!confirm("Delete this document?")) return;
 
-    try {
-      const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
-      const data = await res.json();
+    const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+    const data = await res.json();
 
-      if (data.success) {
-        fetchData();
-      } else {
-        alert(data.error || "Delete failed");
-      }
-    } catch (error) {
-      alert("An error occurred");
+    if (data.success) fetchData();
+    else alert(data.error);
+  };
+
+  const handleDownload = async (doc: Document) => {
+    const res = await fetch(`/api/documents/${doc.id}`);
+    const data = await res.json();
+
+    if (data.success) {
+      window.open(data.data.downloadUrl, "_blank");
     }
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return "-";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex justify-center py-20">
         <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -119,120 +120,99 @@ export default function BranchDocumentsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Documents</h1>
-
-      {/* Upload Section */}
-      <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Upload Document
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Customer
-            </label>
-            <select
-              value={uploadCustomerId}
-              onChange={(e) => setUploadCustomerId(e.target.value)}
-              className="input-field"
-              aria-label="Select customer for document upload"
-            >
-              <option value="">Select Customer</option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name} ({customer.phone})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (optional)
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="input-field"
-              placeholder="e.g., Aadhar Card, PAN Card"
-            />
-          </div>
-        </div>
-        <FileUpload 
-          onUpload={handleUpload} 
-          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" 
-          label="Upload Document or Photo (max 10MB)"
-        />
+      <div className="flex justify-between mb-6">
+        <h1 className="text-2xl font-bold">Documents</h1>
+        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+          + Upload Document
+        </button>
       </div>
 
-      {/* Filter */}
-      <div className="mb-6">
+      <div className="card mb-6">
+        <label className="block mb-1 font-medium">Filter by Customer</label>
         <select
-          value={selectedCustomerId}
-          onChange={(e) => setSelectedCustomerId(e.target.value)}
-          className="input-field w-full md:w-64"
-          aria-label="Filter documents by customer"
+          className="input-field max-w-md"
+          value={filterCustomerId}
+          onChange={(e) => setFilterCustomerId(e.target.value)}
         >
           <option value="">All Customers</option>
-          {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>
-              {customer.name}
+          {customers.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({c.phone})
             </option>
           ))}
         </select>
       </div>
 
-      {/* Documents List */}
       <div className="card">
         {documents.length === 0 ? (
-          <p className="text-gray-500">No documents found.</p>
+          <p className="text-gray-500">No documents found</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="table-header">File Name</th>
-                  <th className="table-header">Customer</th>
-                  <th className="table-header">Description</th>
-                  <th className="table-header">Uploaded</th>
-                  <th className="table-header">Actions</th>
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="table-header">File</th>
+                <th className="table-header">Customer</th>
+                <th className="table-header">Size</th>
+                <th className="table-header">Date</th>
+                <th className="table-header">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documents.map((doc) => (
+                <tr key={doc.id}>
+                  <td className="table-cell">📄 {doc.originalName}</td>
+                  <td className="table-cell">{doc.customerName}</td>
+                  <td className="table-cell">{formatFileSize(doc.fileSize)}</td>
+                  <td className="table-cell">
+                    {new Date(doc.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="table-cell space-x-3">
+                    <button
+                      onClick={() => handleDownload(doc)}
+                      className="text-primary-600"
+                    >
+                      Download
+                    </button>
+                    <button
+                      onClick={() => handleDelete(doc.id)}
+                      className="text-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {documents.map((doc) => (
-                  <tr key={doc.id}>
-                    <td className="table-cell font-medium">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">📄</span>
-                        {doc.originalName}
-                      </div>
-                    </td>
-                    <td className="table-cell">{doc.customerName}</td>
-                    <td className="table-cell">{doc.description || "-"}</td>
-                    <td className="table-cell">
-                      {new Date(doc.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="table-cell">
-                      <button
-                        onClick={() => handleDownload(doc.id, doc.originalName)}
-                        className="text-primary-600 hover:text-primary-700 mr-3"
-                      >
-                        Download
-                      </button>
-                      <button
-                        onClick={() => handleDelete(doc.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Upload Document"
+      >
+        <select
+          className="input-field mb-4"
+          value={selectedCustomerId}
+          onChange={(e) => setSelectedCustomerId(e.target.value)}
+        >
+          <option value="">Select Customer</option>
+          {customers.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({c.phone})
+            </option>
+          ))}
+        </select>
+
+        {selectedCustomerId && (
+          <FileUpload
+            onUpload={handleUpload}
+            accept=".pdf,.jpg,.png,.jpeg"
+            label="Upload file (max 10MB)"
+          />
+        )}
+      </Modal>
     </div>
   );
 }

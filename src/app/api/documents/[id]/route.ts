@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
 import { withEmployeeAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { deleteFile, generateSasUrl } from '@/lib/blob';
+import { verifyToken } from '@/lib/auth';
 import { Document } from '@/types';
+
+// Helper function to verify auth token
+async function verifyAuth(token: string) {
+  return await verifyToken(token);
+}
 
 // GET single document / download URL
 export async function GET(
@@ -10,13 +16,29 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Verify authentication manually since middleware doesn't support params
+    const token = req.cookies.get('seva_token')?.value;
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = await verifyAuth(token);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const document = await queryOne<Document>(
-      `SELECT d.*, c.name as customerName
-       FROM Documents d
+      `SELECT d.* FROM Documents d
        LEFT JOIN Customers c ON d.customerId = c.id
-       WHERE d.id = @id`,
-      { id: parseInt(id) }
+       WHERE d.id = @id AND d.tenantId = @tenantId`,
+      { id: parseInt(id), tenantId: user.tenantId }
     );
     
     if (!document) {
@@ -62,15 +84,42 @@ export async function GET(
 }
 
 // DELETE document
-export const DELETE = withEmployeeAuth(async (req: AuthenticatedRequest) => {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const url = new URL(req.url);
-    const id = url.pathname.split('/').pop();
+    // Verify authentication manually since middleware doesn't support params
+    const token = req.cookies.get('seva_token')?.value;
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = await verifyAuth(token);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Check role permission
+    if (!['superAdmin', 'branchAdmin', 'employee'].includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
     
-    // Get document to delete from blob storage
+    // Get document to delete from blob storage - with tenant check
     const document = await queryOne<Document>(
-      'SELECT blobName FROM Documents WHERE id = @id',
-      { id: parseInt(id!) }
+      'SELECT blobName FROM Documents WHERE id = @id AND tenantId = @tenantId',
+      { id: parseInt(id), tenantId: user.tenantId }
     );
     
     if (!document) {
@@ -94,7 +143,7 @@ export const DELETE = withEmployeeAuth(async (req: AuthenticatedRequest) => {
     }
     
     // Delete from database
-    await execute('DELETE FROM Documents WHERE id = @id', { id: parseInt(id!) });
+    await execute('DELETE FROM Documents WHERE id = @id AND tenantId = @tenantId', { id: parseInt(id), tenantId: user.tenantId });
     
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -104,4 +153,4 @@ export const DELETE = withEmployeeAuth(async (req: AuthenticatedRequest) => {
       { status: 500 }
     );
   }
-});
+}
