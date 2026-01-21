@@ -108,9 +108,9 @@ export const POST = withEmployeeAuth(async (req: AuthenticatedRequest) => {
 
     console.log('💾 Inserting document into DB...');
     const result = await execute(
-      `INSERT INTO Documents (customerId, originalName, blobName, fileSize)
+      `INSERT INTO Documents (customerId, tenantId, originalName, blobName, fileSize)
        OUTPUT INSERTED.id
-       VALUES (@customerId, @originalName, @blobName, @fileSize)`,
+       VALUES (@customerId, @tenantId, @originalName, @blobName, @fileSize)`,
       {
         customerId: parseInt(customerId),
         tenantId: req.user.tenantId,
